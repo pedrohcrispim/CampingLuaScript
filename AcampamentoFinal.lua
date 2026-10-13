@@ -1,5 +1,5 @@
 --============================================================
--- SISTEMA DE CAMPING UNIFICADO (v4 — sem recast indevido de fogueira)
+-- SISTEMA DE CAMPING UNIFICADO (v4)
 --============================================================
 
 --------------------------------------------------------------
@@ -16,7 +16,7 @@ local TICK_INTERVAL       = 10000      -- ms, só usado pra limpar o registro do
 -- Objetos visuais
 local GO_TENT      = 184592
 local GO_ANVIL     = 900010   -- clone customizado (type = 10, Goober, data zerados)
-local GO_CAMPFIRE  = 29784    -- gerado pela spell 818
+local GO_CAMPFIRE  = 29784    
 
 -- NPCs vendedores por facção
 local NPC_ALLIANCE = 5178
@@ -26,7 +26,7 @@ local NPC_HORDE    = 3168
 local SKILL_FISHING = 356
 local MIN_FISHING   = 20
 
--- Buffs por profissão (ajuste os spellId como preferir)
+-- Buffs por profissão
 local PROFESSION_BUFFS = {
     [164] = { name = "Blacksmithing",  spellId = 8076,  minSkill = 1 }, -- Str
     [165] = { name = "Leatherworking", spellId = 6673,  minSkill = 1 }, -- AP
@@ -34,16 +34,14 @@ local PROFESSION_BUFFS = {
     [197] = { name = "Tailoring",      spellId = 21562, minSkill = 1 }, -- Stam
 }
 
-local FISHBOWL_BUFF  = 25898   -- Blessing of Kings (exclusividade automática)
+local FISHBOWL_BUFF  = 25898   -- Blessing of Kings 
 
 --------------------------------------------------------------
--- ESTADO COMPARTILHADO
 --------------------------------------------------------------
 local ACTIVE_CAMPS   = {} -- [ownerGuid] = { mapId, x, y, z, expireAt }
 local CAMP_COOLDOWNS = {} -- [playerGuid] = timestamp de expiração do cooldown compartilhado
 
 --------------------------------------------------------------
--- Helper: checa e aplica o cooldown compartilhado de camping
 --------------------------------------------------------------
 local function CheckAndSetCampCooldown(player)
     local guid = player:GetGUIDLow()
@@ -60,8 +58,6 @@ local function CheckAndSetCampCooldown(player)
 end
 
 --------------------------------------------------------------
--- Helper: encontra se o jogador está dentro do raio de algum
--- acampamento ativo
 --------------------------------------------------------------
 local function FindNearbyCamp(player)
     for _, c in pairs(ACTIVE_CAMPS) do
@@ -73,7 +69,6 @@ local function FindNearbyCamp(player)
 end
 
 --------------------------------------------------------------
--- Aplica o buff de profissão a todos no raio do acampamento
 --------------------------------------------------------------
 local function BroadcastProfessionBuff(triggeringPlayer, camp)
     local matched = nil
@@ -102,7 +97,6 @@ local function BroadcastProfessionBuff(triggeringPlayer, camp)
 end
 
 --------------------------------------------------------------
--- USE: Bigorna (via GAMEOBJECT_EVENT_ON_USE, não gossip)
 --------------------------------------------------------------
 local function OnUseAnvil(event, go, player)
     local camp = FindNearbyCamp(player)
@@ -114,7 +108,6 @@ end
 RegisterGameObjectEvent(GO_ANVIL, 14, OnUseAnvil) -- 14 = GAMEOBJECT_EVENT_ON_USE
 
 --------------------------------------------------------------
--- ITEM: Kit de Acampamento
 --------------------------------------------------------------
 local function SetupCamp(event, player, item, target)
     if not CheckAndSetCampCooldown(player) then
@@ -153,7 +146,7 @@ local function SetupCamp(event, player, item, target)
     }
     ACTIVE_CAMPS[guid] = camp
 
-    -- Timer só pra limpar o registro do acampamento quando expirar (SEM recast de spell)
+   
     player:RegisterEvent(function(eventId, delay, repeats, p)
         if os.time() >= camp.expireAt then
             ACTIVE_CAMPS[guid] = nil
@@ -166,7 +159,6 @@ end
 RegisterItemEvent(ITEM_KIT, 2, SetupCamp)
 
 --------------------------------------------------------------
--- ITEM: Fish Bowl
 --------------------------------------------------------------
 local function UseFishBowl(event, player, item, target)
     if player:GetSkillValue(SKILL_FISHING) < MIN_FISHING then
